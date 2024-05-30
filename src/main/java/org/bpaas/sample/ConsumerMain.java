@@ -15,10 +15,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * - publish on two tenant
@@ -31,6 +28,9 @@ public class ConsumerMain {
 
     @Option(name = "--queue-url", required = false)
     public static String queueUrl = "https://sqs.us-east-1.amazonaws.com/427396468640/all_queue.fifo";
+
+    @Option(name = "--max-num-msg", required = false)
+    public static int maxNumberOfMessage = 10;
 
 
     public static void main(String[] args) {
@@ -58,7 +58,7 @@ public class ConsumerMain {
             while (true) {
                 ReceiveMessageRequest request = ReceiveMessageRequest.builder()
                         .queueUrl(queueUrl)
-                        .maxNumberOfMessages(10)
+                        .maxNumberOfMessages(maxNumberOfMessage)
                         .messageAttributeNames(".*") //https://stackoverflow.com/questions/44238656/how-to-add-sqs-message-attributes-in-sns-subscription
                         .build();
 
@@ -66,6 +66,13 @@ public class ConsumerMain {
                 System.out.println("got [" + messages.size() + "] messages");
                 messages.stream().forEach(m -> {
                     System.out.println("message: id [" + m.messageId() + "] - tenant-id [" + m.messageAttributes().get("tenant-id").stringValue() + "] - activity [" + m.messageAttributes().get("activity").stringValue() + "]");
+                    //create some randomness to mimic "real" processing
+                    Random random = new Random();
+                    try {
+                        Thread.sleep(random.nextInt(20) * 100);
+                    } catch (InterruptedException e) {
+                        System.err.println("error while thread sleeping");
+                    }
 
                     DeleteMessageRequest deleteRequest = DeleteMessageRequest.builder().queueUrl(queueUrl).receiptHandle(m.receiptHandle()).build();
                     client.deleteMessage(deleteRequest);

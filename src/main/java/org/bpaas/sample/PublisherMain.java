@@ -35,6 +35,9 @@ public class PublisherMain {
     @Option(name = "--message-num-split", required = false)
     public static int messageNumSplit = 10;
 
+    @Option(name = "--use-message-group", required = false)
+    public static boolean useMessageGroup = false;
+
     public static void main(String[] args) {
         PublisherMain publisher = new PublisherMain();
         OptionsParser.parseCommandLine(publisher, args);
@@ -58,14 +61,19 @@ public class PublisherMain {
                     messageAttrs.put("activity", MessageAttributeValue.builder().dataType("String").stringValue("xva-fee").build());
                 }
 
-                PublishRequest request = PublishRequest.builder()
+                PublishRequest.Builder builder = PublishRequest.builder()
                         .message(messageBody)
                         //.messageStructure("json")
                         .messageAttributes(messageAttrs)
                         .topicArn(snsTopic)
                         .messageGroupId(UUID.randomUUID().toString())
-                        .messageDeduplicationId(UUID.randomUUID().toString())
-                        .build();
+                        .messageDeduplicationId(UUID.randomUUID().toString());
+
+                if(useMessageGroup) {
+                    builder.messageGroupId(messageAttrs.get("activity").stringValue());
+                }
+
+                PublishRequest request = builder.build();
 
                 PublishResponse response = publisher.publish(request);
                 System.out.println("sent message [" + response.messageId() + "] - status [" + response.sdkHttpResponse().statusCode() + "]");
