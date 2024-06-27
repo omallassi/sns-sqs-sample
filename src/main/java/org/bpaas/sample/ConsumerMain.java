@@ -65,7 +65,11 @@ public class ConsumerMain {
                 List<Message> messages = client.receiveMessage(request).messages();
                 System.out.println("got [" + messages.size() + "] messages");
                 messages.stream().forEach(m -> {
-                    System.out.println("message: id [" + m.messageId() + "] - tenant-id [" + m.messageAttributes().get("tenant-id").stringValue() + "] - activity [" + m.messageAttributes().get("activity").stringValue() + "]");
+                    long emitTimestamp = Long.parseLong(m.messageAttributes().get("emit-ts").stringValue());
+                    long currentTimestamp = System.currentTimeMillis();
+                    long elapsed = currentTimestamp - emitTimestamp;
+
+                    System.out.println("message: id [" + m.messageId() + "] - tenant-id [" + m.messageAttributes().get("tenant-id").stringValue() + "] - activity [" + m.messageAttributes().get("activity").stringValue() + "] - elapsed : [" + elapsed + "]");
                     //create some randomness to mimic "real" processing
                     Random random = new Random();
                     try {

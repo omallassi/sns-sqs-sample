@@ -54,6 +54,7 @@ public class PublisherMain {
                 String messageBody = "{pu: .... s3-ref: .......}";
                 Map<String, MessageAttributeValue> messageAttrs = new HashMap<>();
                 messageAttrs.put("tenant-id", MessageAttributeValue.builder().dataType("String").stringValue(tenantId).build()); //https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
+                messageAttrs.put("emit-ts", MessageAttributeValue.builder().dataType("String").stringValue( String.valueOf(System.currentTimeMillis())).build());
                 if(i < messageNumSplit) {
                     messageAttrs.put("activity", MessageAttributeValue.builder().dataType("String").stringValue("risk-management").build());
                 }
