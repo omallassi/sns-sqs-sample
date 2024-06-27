@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.sns.model.SnsException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -49,18 +50,27 @@ public class PublisherMain {
         try {
             SnsClient publisher = SnsClient.builder().region(Region.US_EAST_1).credentialsProvider(ProfileCredentialsProvider.create()).build();
 
+            String[] activities = new String[]{"risk-management", "xva-fee", "pricing"};
+            Random random = new Random();
+
             //publish
             for (int i = 0; i < messageNum; i++) {
                 String messageBody = "{pu: .... s3-ref: .......}";
                 Map<String, MessageAttributeValue> messageAttrs = new HashMap<>();
                 messageAttrs.put("tenant-id", MessageAttributeValue.builder().dataType("String").stringValue(tenantId).build()); //https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
                 messageAttrs.put("emit-ts", MessageAttributeValue.builder().dataType("String").stringValue( String.valueOf(System.currentTimeMillis())).build());
-                if(i < messageNumSplit) {
-                    messageAttrs.put("activity", MessageAttributeValue.builder().dataType("String").stringValue("risk-management").build());
-                }
-                else{
-                    messageAttrs.put("activity", MessageAttributeValue.builder().dataType("String").stringValue("xva-fee").build());
-                }
+
+                int index = random.nextInt(0, 3);
+                System.out.println("got index [" + index + "]");
+
+                messageAttrs.put("activity", MessageAttributeValue.builder().dataType("String").stringValue(activities[index]).build());
+
+//                if(i < messageNumSplit) {
+//                    messageAttrs.put("activity", MessageAttributeValue.builder().dataType("String").stringValue("risk-management").build());
+//                }
+//                else{
+//                    messageAttrs.put("activity", MessageAttributeValue.builder().dataType("String").stringValue("xva-fee").build());
+//                }
 
                 PublishRequest.Builder builder = PublishRequest.builder()
                         .message(messageBody)
